@@ -5,15 +5,13 @@ import (
 	"runtime"
 
 	basicuser "github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
-	thirdparty "github.com/xh-polaris/synapse4b/biz/domain/thirdparty/dal/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 )
 
 var path2Model = map[string][]any{
-	"/basicuser/dal/query":  {&basicuser.Auth{}, &basicuser.BasicUser{}, &basicuser.School{}},
-	"/thirdparty/dal/query": {&thirdparty.ThirdPartyUser{}},
+	"/basicuser/dal/query": {&basicuser.Auth{}, &basicuser.BasicUser{}, &basicuser.School{}},
 }
 
 func getRootPath() string {

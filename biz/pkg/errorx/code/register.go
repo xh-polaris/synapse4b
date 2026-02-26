@@ -1,7 +1,7 @@
 package code
 
 import (
-	"github.com/xh-polaris/synapse/biz/pkg/errorx/internal"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx/internal"
 )
 
 type RegisterOptionFn = internal.RegisterOption

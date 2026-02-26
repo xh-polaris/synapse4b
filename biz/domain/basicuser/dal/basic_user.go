@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/model"
-	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/query"
-	"github.com/xh-polaris/synapse/biz/infra/contract/id"
-	"github.com/xh-polaris/synapse/biz/infra/contract/orm"
+	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
+	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/query"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/id"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/orm"
 	"gorm.io/gorm"
 )
 

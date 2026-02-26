@@ -8,17 +8,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/xh-polaris/synapse/biz/api/model/system"
-	"github.com/xh-polaris/synapse/biz/application/base/token"
-	"github.com/xh-polaris/synapse/biz/application/internal"
-	"github.com/xh-polaris/synapse/biz/conf"
-	"github.com/xh-polaris/synapse/biz/infra/contract/cache"
-	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
-	"github.com/xh-polaris/synapse/biz/pkg/errorx"
-	"github.com/xh-polaris/synapse/biz/pkg/logs"
-	"github.com/xh-polaris/synapse/biz/types/cst"
-	"github.com/xh-polaris/synapse/biz/types/errno"
+	"github.com/xh-polaris/synapse4b/biz/api/model/system"
+	"github.com/xh-polaris/synapse4b/biz/application/base/token"
+	"github.com/xh-polaris/synapse4b/biz/application/internal"
+	"github.com/xh-polaris/synapse4b/biz/conf"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/sms"
 	ctxcache "github.com/xh-polaris/synapse4b/biz/pkg/ctxcache/ctx_cache"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
+	"github.com/xh-polaris/synapse4b/biz/types/cst"
+	"github.com/xh-polaris/synapse4b/biz/types/errno"
 )
 
 var SystemSVC = &SystemService{}

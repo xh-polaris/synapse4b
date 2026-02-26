@@ -2,7 +2,6 @@ package main
 
 import (
 	basicuser "github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
-	thirdparty "github.com/xh-polaris/synapse4b/biz/domain/thirdparty/dal/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -20,7 +19,7 @@ func main() {
 	}
 
 	// 自动迁移表结构
-	err = db.AutoMigrate(&basicuser.Auth{}, &basicuser.BasicUser{}, &basicuser.School{}, &thirdparty.ThirdPartyUser{})
+	err = db.AutoMigrate(&basicuser.Auth{}, &basicuser.BasicUser{}, &basicuser.School{})
 	if err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}

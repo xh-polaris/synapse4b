@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/xh-polaris/synapse/biz/infra/contract/cache"
-	"github.com/xh-polaris/synapse/biz/infra/contract/id"
-	"github.com/xh-polaris/synapse/biz/infra/contract/orm"
-	"github.com/xh-polaris/synapse/biz/infra/contract/risk"
-	"github.com/xh-polaris/synapse/biz/infra/impl/cache/redis"
-	"github.com/xh-polaris/synapse/biz/infra/impl/mongoid"
-	"github.com/xh-polaris/synapse/biz/infra/impl/mysql"
-	"github.com/xh-polaris/synapse/biz/infra/impl/sms"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/id"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/orm"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/risk"
 	contsms "github.com/xh-polaris/synapse4b/biz/infra/contract/sms"
+	"github.com/xh-polaris/synapse4b/biz/infra/impl/cache/redis"
+	"github.com/xh-polaris/synapse4b/biz/infra/impl/mongoid"
+	"github.com/xh-polaris/synapse4b/biz/infra/impl/mysql"
+	"github.com/xh-polaris/synapse4b/biz/infra/impl/sms"
 )
 
 type AppDependencies struct {

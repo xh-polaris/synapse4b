@@ -1,8 +1,8 @@
 package dal
 
 import (
-	"github.com/xh-polaris/synapse/biz/domain/basicuser/dal/query"
-	"github.com/xh-polaris/synapse/biz/infra/contract/orm"
+	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/query"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/orm"
 )
 
 func NewAuthDAO(db *orm.DB) *AuthDAO {

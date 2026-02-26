@@ -3,8 +3,8 @@ package system
 import (
 	"context"
 
-	"github.com/xh-polaris/synapse/biz/infra/contract/cache"
-	"github.com/xh-polaris/synapse/biz/infra/contract/sms"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/sms"
 )
 
 func InitService(ctx context.Context, sms sms.Provider, cache cache.Cmdable) *SystemService {

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/xh-polaris/synapse/biz/conf"
-	"github.com/xh-polaris/synapse/biz/types/cst"
+	"github.com/xh-polaris/synapse4b/biz/conf"
+	"github.com/xh-polaris/synapse4b/biz/types/cst"
 )
 
 type Info struct {

@@ -1,9 +1,9 @@
 package conf
 
 import (
-	"github.com/xh-polaris/synapse/biz/api/model/base"
-	"github.com/xh-polaris/synapse/biz/pkg/errorx"
-	"github.com/xh-polaris/synapse/biz/types/errno"
+	"github.com/xh-polaris/synapse4b/biz/api/model/base"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse4b/biz/types/errno"
 )
 
 type App struct {

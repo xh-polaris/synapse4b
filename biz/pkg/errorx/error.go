@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/xh-polaris/synapse/biz/pkg/errorx/internal"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx/internal"
 )
 
 // StatusError 是一个包含状态码的error接口, 可以使用New或WrapByCode创建

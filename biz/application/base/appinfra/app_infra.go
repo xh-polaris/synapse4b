@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
+	contemail "github.com/xh-polaris/synapse4b/biz/infra/contract/email"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/id"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/orm"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/risk"
 	contsms "github.com/xh-polaris/synapse4b/biz/infra/contract/sms"
 	"github.com/xh-polaris/synapse4b/biz/infra/impl/cache/redis"
+	"github.com/xh-polaris/synapse4b/biz/infra/impl/email"
 	"github.com/xh-polaris/synapse4b/biz/infra/impl/mongoid"
 	"github.com/xh-polaris/synapse4b/biz/infra/impl/mysql"
 	"github.com/xh-polaris/synapse4b/biz/infra/impl/sms"
@@ -21,6 +23,7 @@ type AppDependencies struct {
 	RiskManager *risk.RiskManager
 	CacheCli    cache.Cmdable
 	SMS         contsms.Provider
+	Email       contemail.Provider
 }
 
 // Init 初始化
@@ -36,6 +39,10 @@ func Init(ctx context.Context) (_ *AppDependencies, err error) {
 	infra.SMS, err = sms.New(ctx, infra.CacheCli)
 	if err != nil {
 		return nil, fmt.Errorf("init infra [SMS] failed, err:%v", err)
+	}
+	infra.Email, err = email.New(ctx, infra.CacheCli)
+	if err != nil {
+		return nil, fmt.Errorf("init infra [Email] failed, err:%v", err)
 	}
 	return infra, nil
 }

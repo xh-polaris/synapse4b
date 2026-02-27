@@ -62,6 +62,22 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 	return basicUserModel2Entity(u)
 }
 
+func (i *userImpl) LoginByEmail(ctx context.Context, requirePassword bool, email, verify string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil { // 未注册过
+		return nil, errorx.New(errno.EmailNotExisted)
+	}
+	if requirePassword {
+		if err = loginLimiter(ctx, verify, u.Password, email); err != nil {
+			return nil, err
+		}
+	}
+	return basicUserModel2Entity(u)
+}
+
 func (i *userImpl) LoginByCode(ctx context.Context, schoolId, code, verify string) (*entity.BasicUser, error) {
 	u, err := i.BasicUserRepo.FindByCode(ctx, schoolId, code)
 	if err != nil {
@@ -100,6 +116,17 @@ func (i *userImpl) CodeExist(ctx context.Context, schoolId, code string) (is boo
 	return false, nil
 }
 
+func (i *userImpl) EmailExist(ctx context.Context, email string) (is bool, err error) {
+	mu, err := i.BasicUserRepo.FindByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+	if mu != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, password string) (u *entity.BasicUser, err error) {
 	var hashed string
 	if password != "" {
@@ -117,14 +144,15 @@ func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, 
 	switch authType {
 	case cst.AuthTypePhoneVerify:
 		nu.Phone = &authId
-	case cst.AuthTypeCodePassword:
-		aid, err := id.FromHex(authId)
-		if err != nil {
-			return nil, err
-		}
-		nu.SchoolID = &aid
-		nu.Code = &extraAuthId
-
+	//case cst.AuthTypeCodePassword:
+	//	aid, err := id.FromHex(authId)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	nu.UnitID = &aid
+	//	nu.Code = &extraAuthId
+	case cst.AuthTypeEmailVerify:
+		nu.Email = &authId
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))
 	}
@@ -172,6 +200,7 @@ func basicUserModel2Entity(u *model.BasicUser) (*entity.BasicUser, error) {
 		ID:        u.ID.Hex(),
 		Code:      u.Code,
 		Phone:     u.Phone,
+		Email:     u.Email,
 		Password:  u.Password,
 		Name:      u.Name,
 		Gender:    u.Gender,

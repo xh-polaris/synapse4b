@@ -23,6 +23,7 @@ func NewSchoolRepo(db *orm.DB) SchoolRepo {
 type BasicUserRepo interface {
 	FindByID(ctx context.Context, id string) (*model.BasicUser, error)
 	FindByPhone(ctx context.Context, phone string) (*model.BasicUser, error)
+	FindByEmail(ctx context.Context, email string) (*model.BasicUser, error)
 	FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error)
 	FindByCode(ctx context.Context, schoolId, code string) (*model.BasicUser, error)
 	Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error)

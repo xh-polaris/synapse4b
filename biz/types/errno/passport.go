@@ -21,6 +21,8 @@ const (
 	MissingParameter    = 200_000_014
 	InvalidToken        = 200_000_015
 	UserNotExisted      = 200_000_016
+	EmailHasExisted     = 200_000_017
+	EmailNotExisted     = 200_000_018
 )
 
 func init() {
@@ -95,6 +97,18 @@ func init() {
 	)
 	code.Register(InvalidToken,
 		"invalid token",
+		code.WithAffectStability(false),
+	)
+	code.Register(UserNotExisted,
+		"user not exists",
+		code.WithAffectStability(false),
+	)
+	code.Register(EmailHasExisted,
+		"email {email} has existed",
+		code.WithAffectStability(false),
+	)
+	code.Register(EmailNotExisted,
+		"email not exists",
 		code.WithAffectStability(false),
 	)
 }

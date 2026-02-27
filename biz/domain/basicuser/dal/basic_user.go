@@ -44,6 +44,16 @@ func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.Ba
 	return user, err
 }
 
+func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.BasicUser, error) {
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Email.Eq(email)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
 func (d *BasicUserDAO) FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error) {
 	sid, err := id.FromHex(schoolId)
 	if err != nil {

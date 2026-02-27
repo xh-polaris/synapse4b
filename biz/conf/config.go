@@ -21,6 +21,7 @@ type Config struct {
 	State    string
 	Cache    *Cache
 	SMS      *SMS
+	Email    *Email
 	DB       *DB
 	App      map[string]*App
 	Token    *Token

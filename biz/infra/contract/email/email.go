@@ -1,0 +1,47 @@
+package email
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
+)
+
+// Provider 提供Email相关服务, 支持附有效期(param.Expire)的验证码(param.Code)存储与校验
+type Provider interface {
+	// Send 发送验证码
+	Send(ctx context.Context, app, cause, email string, param *EmailParam) error
+	// Check 校验验证码
+	Check(ctx context.Context, app, cause, email, code string) (bool, error)
+}
+
+type EmailParam struct {
+	Code   string
+	Expire time.Duration
+}
+
+// Cache 提供EmailParam相关验证码存储与获取能力
+type Cache struct {
+	cache cache.Cmdable
+}
+
+func NewEmailCache(_ context.Context, cli cache.Cmdable) *Cache {
+	return &Cache{cache: cli}
+}
+
+func (c *Cache) buildKey(app, cause, email string) string {
+	return fmt.Sprintf("%s:%s:%s", app, cause, email)
+}
+
+// Store 存储验证码
+func (c *Cache) Store(ctx context.Context, app, cause, email, code string, expire time.Duration) error {
+	result := c.cache.Set(ctx, c.buildKey(app, cause, email), code, expire)
+	return result.Err()
+}
+
+// Load 获取验证码
+func (c *Cache) Load(ctx context.Context, app, cause, email string) (string, error) {
+	result := c.cache.Get(ctx, c.buildKey(app, cause, email))
+	return result.Val(), result.Err()
+}

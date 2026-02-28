@@ -22,4 +22,10 @@ require (
 	gorm.io/plugin/dbresolver v1.6.2
 )
 
+require (
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.3.50 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ses v1.3.49 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.1.49 // indirect
+)
+
 replace github.com/apache/thrift => github.com/apache/thrift v0.13.0

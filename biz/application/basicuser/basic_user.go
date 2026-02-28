@@ -252,3 +252,25 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 		Resp: application.Success(),
 	}, nil
 }
+
+// CreateBasicUser 创建一个新的用户
+func (s *BasicUserService) CreateBasicUser(ctx context.Context, req *model.BasicUserCreateReq) (resp *model.BasicUserCreateResp, err error) {
+	// 校验应用信息
+	if err = conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+	// 校验创建密钥
+	var ok bool
+	var u *entity.BasicUser
+	if err, ok = conf.VerifyCreateKey(req.GetApp(), *req.CreateKey); err != nil || !ok {
+		return nil, errorx.New(errno.ErrCreateKey)
+	}
+	if u, err = s.DomainSVC.CreateBasicUser(ctx, util.UnPtr(req.UnitId), util.UnPtr(req.Code), util.UnPtr(req.Phone),
+		util.UnPtr(req.Email), util.UnPtr(req.Password), util.UnPtr(req.EncryptType)); err != nil {
+		return nil, err
+	}
+	return &model.BasicUserCreateResp{
+		Resp:      application.Success(),
+		BasicUser: internal.BasicUserPO2VO(u),
+	}, nil
+}

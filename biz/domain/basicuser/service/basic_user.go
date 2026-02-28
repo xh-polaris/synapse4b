@@ -16,4 +16,5 @@ type BasicUser interface {
 	LoginByEmail(ctx context.Context, requirePassword bool, email, verify string) (*entity.BasicUser, error)
 	LoginByCode(ctx context.Context, schoolId, code, verify string) (*entity.BasicUser, error)
 	ResetPassword(ctx context.Context, basicUserId string, password string) error
+	CreateBasicUser(ctx context.Context, unitId, code, phone, email, password string, encryptType int64) (*entity.BasicUser, error)
 }

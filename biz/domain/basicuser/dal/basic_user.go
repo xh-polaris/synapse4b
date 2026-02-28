@@ -91,3 +91,44 @@ func (d *BasicUserDAO) ResetPassword(ctx context.Context, basicUserId, password 
 		Update(d.query.BasicUser.Password, password)
 	return err
 }
+
+// FindCompletely 完全匹配
+func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitID)
+	if err != nil {
+		return nil, err
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid),
+		d.query.BasicUser.Code.Eq(code), d.query.BasicUser.Phone.Eq(phone), d.query.BasicUser.Email.Eq(email)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
+// FindPartly 部分匹配
+// 匹配到unitId和code,phone,email三组中任意一组
+func (d *BasicUserDAO) FindPartly(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitID)
+	if err != nil {
+		return nil, err
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.
+		Where(
+			d.query.BasicUser.UnitID.Eq(uid),
+			d.query.BasicUser.Code.Eq(code),
+		).
+		Or(d.query.BasicUser.Phone.Eq(phone)).
+		Or(d.query.BasicUser.Email.Eq(email)).
+		First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}

@@ -8,7 +8,7 @@ import (
 
 type App struct {
 	Status    int
-	ResetKey  string
+	CreateKey string
 	TicketKey string
 }
 
@@ -34,6 +34,18 @@ func VerifyTicketKey(app *base.App, code string) (error, bool) {
 	name := app.GetName()
 	if v, ok := GetConfig().App[name]; ok {
 		return nil, code == v.TicketKey
+	}
+	return nil, false
+}
+
+// VerifyCreateKey 校验创建密钥
+func VerifyCreateKey(app *base.App, code string) (error, bool) {
+	if app == nil {
+		return errorx.New(errno.MissingParameter, errorx.KV("parameter", "app")), false
+	}
+	name := app.GetName()
+	if v, ok := GetConfig().App[name]; ok {
+		return nil, code == v.CreateKey
 	}
 	return nil, false
 }

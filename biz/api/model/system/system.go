@@ -9,7 +9,7 @@ import (
 )
 
 /*
-系统基础服务API
+ 系统基础服务API
 */
 type SendVerifyCodeReq struct {
 	AuthType string `thrift:"authType,1" form:"authType" json:"authType" query:"authType"`

@@ -15,6 +15,7 @@ import (
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/risk"
 	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
 	"github.com/xh-polaris/synapse4b/biz/pkg/lang/crypt"
+	"github.com/xh-polaris/synapse4b/biz/pkg/lang/util"
 	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
 	"github.com/xh-polaris/synapse4b/biz/types/cst"
 	"github.com/xh-polaris/synapse4b/biz/types/errno"
@@ -33,6 +34,64 @@ func NewBasicUserDomain(ctx context.Context, c *Component) BasicUser {
 
 type userImpl struct {
 	*Component
+}
+
+func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, email, password string, encryptType int64) (user *entity.BasicUser, err error) {
+	// 查询是否存在完全匹配的账号, 若是则绑定到该账号上, 忽视初始密码
+	u, err := i.BasicUserRepo.FindCompletely(ctx, unitId, code, phone, email)
+	if err != nil {
+		return nil, err
+	} else if u != nil { // 存在完全匹配
+		if user, err = basicUserModel2Entity(u); err != nil {
+			return nil, err
+		}
+		return user, nil
+	}
+	// 查询是否存在部分匹配的账号, 若是则返回部分匹配, 绑定失败
+	u, err = i.BasicUserRepo.FindPartly(ctx, unitId, code, phone, email)
+	if err != nil {
+		return nil, err
+	} else if u != nil { // 存在部分匹配
+		return nil, errorx.New(errno.ErrPartlyCreate)
+	}
+
+	// 否则, 创建新用户, 使用初始密码
+	var pass string
+	if password == "" {
+		return nil, errorx.New(errno.MustPassword)
+	}
+	if encryptType == 0 { // 使用bcrypt加密
+		pass, err = crypt.Hash(password)
+	} else { // 传入的是md5密文
+		pass = password
+	}
+	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), Password: util.Of(pass), Encrypt: uint8(encryptType)}
+
+	// 学号
+	if unitId != "" && code != "" {
+		uid, err := id.FromHex(unitId)
+		if err != nil {
+			return nil, err
+		}
+		nu.UnitID = util.Of(uid)
+		nu.Code = util.Of(code)
+	} else if unitId != "" || code != "" { // 不完整
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "unitId or code"))
+	}
+	// 手机号
+	if phone != "" {
+		nu.Phone = util.Of(phone)
+	}
+	// 邮箱
+	if email != "" {
+		nu.Email = util.Of(email)
+	}
+
+	nu, err = i.BasicUserRepo.Create(ctx, nu)
+	if err != nil {
+		return nil, errorx.New(errno.ErrRegister)
+	}
+	return basicUserModel2Entity(nu)
 }
 
 func (i *userImpl) UserIDExist(ctx context.Context, userId string) (user *entity.BasicUser, is bool, err error) {

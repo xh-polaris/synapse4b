@@ -55,3 +55,8 @@ func _signticketMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _createbasicuserMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

@@ -4,6 +4,12 @@ include "base.thrift"
 
 struct BasicUser {
     1: string basicUserId
+    2: optional string unitId,      // 学校ID
+    3: optional string code,        // 学号
+    4: optional string phone,       // 手机号
+    5: optional string email,       // 邮箱
+    6: optional string name,        // 姓名
+    7: optional i32    gender,      // 性别
 }
 
 /*
@@ -12,11 +18,11 @@ struct BasicUser {
 
 // 基础用户注册
 struct BasicUserRegisterReq {
-    1:   string          authType,  // 认证类型
-    2:   string          authId,    // 认证id
+    1:   string          authType,    // 认证类型
+    2:   string          authId,      // 认证id
     3:   optional string extraAuthId, // 扩展认证id
-    4:   string          verify,    // 认证凭证
-    5:   optional string password,  // 是否初始化密码
+    4:   string          verify,      // 认证凭证
+    5:   optional string password,    // 是否初始化密码
     255: base.App        app,
 }
 
@@ -52,4 +58,22 @@ struct BasicUserResetPasswordReq {
 
 struct BasicUserResetPasswordResp {
     1:   base.Response resp,
+}
+
+// 创建基础用户
+struct BasicUserCreateReq {
+    1: optional string unitId,      // 学校ID
+    2: optional string code,        // 学号
+    3: optional string phone,       // 手机号
+    4: optional string email,       // 邮箱
+    5: optional string password,    // 密码
+    6: optional i64 encryptType, // 密码加密类型
+    254: optional string createKey, // 创建密钥
+    255: base.App        app,
+}
+
+// 创建基础用户响应
+struct BasicUserCreateResp {
+    1: base.Response resp,
+    255: BasicUser basicUser,
 }

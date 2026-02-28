@@ -26,6 +26,8 @@ type BasicUserRepo interface {
 	FindByEmail(ctx context.Context, email string) (*model.BasicUser, error)
 	FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error)
 	FindByCode(ctx context.Context, schoolId, code string) (*model.BasicUser, error)
+	FindCompletely(ctx context.Context, schoolId, code, phone, email string) (*model.BasicUser, error)
+	FindPartly(ctx context.Context, schoolId, code, phone, email string) (*model.BasicUser, error)
 	Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error)
 	ResetPassword(ctx context.Context, basicUserId, password string) error
 }

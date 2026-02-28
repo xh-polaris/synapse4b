@@ -3,17 +3,24 @@ package tencent
 import (
 	"context"
 	"errors"
-	"strconv"
-
+	"fmt"
 	"github.com/cloudwego/hertz/pkg/common/json"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	tencenterrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
-	tencentemail "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/email/v20210111"
+	tencentemail "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ses/v20201002"
 	"github.com/xh-polaris/synapse4b/biz/conf"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/email"
 	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
+	"strconv"
+)
+
+const (
+	// TriggerType 邮件触发类型 0:非触发类，默认类型，营销类邮件、非即时类邮件等选择此类型
+	// 1:触发类，验证码等即时发送类邮件，若邮件超过一定大小，系统会自动选择非触发类型通道
+	TriggerType    = uint64(1)
+	NonTriggerType = uint64(0)
 )
 
 type tencentEmail struct {
@@ -39,7 +46,7 @@ func getTencentEmailProvider(_ context.Context, cache *email.Cache, secretId, se
 }
 
 func (t *tencentEmail) Send(ctx context.Context, app, cause, email string, param *email.EmailParam) (err error) {
-	// 发送短信
+	// 发送邮件
 	if _, err = t.send(ctx, app, cause, email, param); err != nil {
 		return err
 	}
@@ -54,11 +61,19 @@ func (t *tencentEmail) Send(ctx context.Context, app, cause, email string, param
 func (t *tencentEmail) send(_ context.Context, app, cause, email string, param *email.EmailParam) (map[string]any, error) {
 	// 参数设置
 	req := tencentemail.NewSendEmailRequest()
-	req.EmailSdkAppId = common.StringPtr(conf.GetConfig().Email.Extra["AppId"])   // 应用ID
-	req.SignName = common.StringPtr(conf.GetConfig().Email.Extra["Sign"])         // 签名内容
-	req.TemplateId = common.StringPtr(conf.GetConfig().Email.AppConf[app][cause]) //模板ID
-	req.TemplateParamSet = common.StringPtrs([]string{param.Code, strconv.Itoa(int(param.Expire.Minutes()))})
-	req.EmailSet = common.StringPtrs([]string{email})
+
+	req.FromEmailAddress = common.StringPtr(conf.GetConfig().Email.Account)
+	req.Destination = common.StringPtrs([]string{email})
+	req.Subject = common.StringPtr(conf.GetConfig().Email.SubjectConf[app][cause])
+	req.Template = &tencentemail.Template{
+		TemplateID: common.Uint64Ptr(conf.GetConfig().Email.TemplateConf[app][cause]),
+		TemplateData: common.StringPtr(
+			fmt.Sprintf("{\"code\":\"%s\",\"expire\":\"%s\"}",
+				param.Code,
+				strconv.Itoa(int(param.Expire.Minutes()))),
+		),
+	}
+	req.TriggerType = common.Uint64Ptr(TriggerType)
 
 	// 发送响应
 	resp, err := t.client.SendEmail(req)
@@ -78,11 +93,11 @@ func (t *tencentEmail) send(_ context.Context, app, cause, email string, param *
 	}
 	return r, nil
 }
-func (t *tencentEmail) Check(ctx context.Context, app, cause, phone, code string) (bool, error) {
+func (t *tencentEmail) Check(ctx context.Context, app, cause, email, code string) (bool, error) {
 	if code == "xh-polaris" && conf.GetConfig().State == "test" {
 		return true, nil
 	}
-	ori, err := t.cache.Load(ctx, app, cause, phone)
+	ori, err := t.cache.Load(ctx, app, cause, email)
 	if errors.Is(err, cache.Nil) {
 		return false, nil
 	}

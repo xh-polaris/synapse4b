@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"github.com/xh-polaris/synapse4b/biz/infra/contract/email"
 	"math/rand"
 	"strconv"
 	"time"
@@ -25,18 +26,26 @@ var SystemSVC = &SystemService{}
 
 type SystemService struct {
 	sms   sms.Provider
+	email email.Provider
 	cache cache.Cmdable
 }
 
 func (s *SystemService) Send(ctx context.Context, req *system.SendVerifyCodeReq) (*system.SendVerifyCodeResp, error) {
-	if req.AuthType != cst.AuthTypePhoneVerify {
+	switch req.AuthType {
+	case cst.AuthTypePhoneVerify:
+		param := &sms.SMSParam{Code: genCode(), Expire: time.Duration(req.Expire) * time.Second}
+		if err := s.sms.Send(ctx, req.App.Name, req.Cause, req.AuthId, param); err != nil {
+			return nil, errorx.WrapByCode(err, errno.ErrSendPhoneVerify)
+		}
+	case cst.AuthTypeEmailVerify:
+		param := &email.EmailParam{Code: genCode(), Expire: time.Duration(req.Expire) * time.Second}
+		if err := s.email.Send(ctx, req.App.Name, req.Cause, req.AuthId, param); err != nil {
+			return nil, errorx.WrapByCode(err, errno.ErrSendPhoneVerify)
+		}
+	default:
 		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
 
-	param := &sms.SMSParam{Code: genCode(), Expire: time.Duration(req.Expire) * time.Second}
-	if err := s.sms.Send(ctx, req.App.Name, req.Cause, req.AuthId, param); err != nil {
-		return nil, errorx.WrapByCode(err, errno.ErrSendPhoneVerify)
-	}
 	return &system.SendVerifyCodeResp{Resp: internal.Success()}, nil
 }
 
@@ -46,14 +55,24 @@ func genCode() string {
 }
 
 func (s *SystemService) Check(ctx context.Context, req *system.CheckVerifyCodeReq) (*system.CheckVerifyCodeResp, error) {
-	if req.AuthType != cst.AuthTypePhoneVerify {
+	var check bool
+	var err error
+
+	switch req.AuthType {
+	case cst.AuthTypePhoneVerify:
+		check, err = s.sms.Check(ctx, req.App.Name, req.Cause, req.AuthId, req.Verify)
+		if err != nil {
+			return nil, err
+		}
+	case cst.AuthTypeEmailVerify:
+		check, err = s.email.Check(ctx, req.App.Name, req.Cause, req.AuthId, req.Verify)
+		if err != nil {
+			return nil, err
+		}
+	default:
 		return nil, errorx.New(errno.ErrInvalidAuthType, errorx.KV("type", req.AuthType))
 	}
 
-	check, err := s.sms.Check(ctx, req.App.Name, req.Cause, req.AuthId, req.Verify)
-	if err != nil {
-		return nil, err
-	}
 	return &system.CheckVerifyCodeResp{Resp: internal.Success(), Verify: check}, nil
 }
 

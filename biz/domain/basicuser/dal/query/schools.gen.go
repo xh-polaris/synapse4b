@@ -7,14 +7,15 @@ package query
 import (
 	"context"
 	"database/sql"
+	"strings"
 
-	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gen/helper"
 
 	"gorm.io/plugin/dbresolver"
 )

@@ -14,7 +14,7 @@ type BasicUser struct {
 	Email     *string        `gorm:"column:email;uniqueIndex;type:varchar(16)" json:"email"`                        // Email 邮箱
 	Password  *string        `gorm:"column:password;type:varchar(60);comment:Password (Encrypted)" json:"password"` // Password (Encrypted)
 	Name      string         `gorm:"column:name;type:varchar(60);comment:User Nickname" json:"name"`                // User Nickname
-	Gender    uint8          `gorm:"column:gender" json:"gender"`                                                   // Gender 性别
+	Gender    uint8          `gorm:"column:gender" json:"gender"`                                                   // Gender 性别 0:未知 1:男 2:女
 	Encrypt   uint8          `gorm:"column:encrypt" json:"encrypt"`                                                 // 加密方式
 	Extra     datatypes.JSON `gorm:"column:extra" json:"extra"`                                                     // Extra json字符串存储可能存在的额外信息
 	CreatedAt int64          `gorm:"column:created_at;not null;autoCreateTime:milli;" json:"created_at"`            // Creation Time (Milliseconds)

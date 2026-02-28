@@ -19,7 +19,7 @@ func main() {
 	}
 
 	// 自动迁移表结构
-	err = db.AutoMigrate(&basicuser.Auth{}, &basicuser.BasicUser{}, &basicuser.School{})
+	err = db.AutoMigrate(&basicuser.BasicUser{}, &basicuser.School{})
 	if err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}

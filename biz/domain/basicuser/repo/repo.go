@@ -12,10 +12,6 @@ func NewBasicUserRepo(db *orm.DB) BasicUserRepo {
 	return dal.NewBasicUserDAO(db)
 }
 
-func NewAuthAuthRepo(db *orm.DB) AuthRepo {
-	return dal.NewAuthDAO(db)
-}
-
 func NewSchoolRepo(db *orm.DB) SchoolRepo {
 	return dal.NewSchoolDAO(db)
 }

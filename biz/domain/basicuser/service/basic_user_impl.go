@@ -23,7 +23,6 @@ import (
 
 type Component struct {
 	BasicUserRepo repo.BasicUserRepo
-	AuthRepo      repo.AuthRepo
 	SchoolRepo    repo.SchoolRepo
 	IdGen         id.IDGenerator
 }
@@ -114,7 +113,7 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 		return nil, errorx.New(errno.PhoneNotExisted)
 	}
 	if requirePassword {
-		if err = loginLimiter(ctx, verify, u.Password, phone); err != nil {
+		if err = loginLimiter(ctx, u.Encrypt, verify, u.Password, phone); err != nil {
 			return nil, err
 		}
 	}
@@ -130,7 +129,7 @@ func (i *userImpl) LoginByEmail(ctx context.Context, requirePassword bool, email
 		return nil, errorx.New(errno.EmailNotExisted)
 	}
 	if requirePassword {
-		if err = loginLimiter(ctx, verify, u.Password, email); err != nil {
+		if err = loginLimiter(ctx, u.Encrypt, verify, u.Password, email); err != nil {
 			return nil, err
 		}
 	}
@@ -145,7 +144,7 @@ func (i *userImpl) LoginByCode(ctx context.Context, schoolId, code, verify strin
 	if u == nil { // 未注册过
 		return nil, errorx.New(errno.CodeNotExisted, errorx.KV("code", code))
 	}
-	if err = loginLimiter(ctx, verify, u.Password, schoolId, code); err != nil {
+	if err = loginLimiter(ctx, u.Encrypt, verify, u.Password, schoolId, code); err != nil {
 		return nil, err
 	}
 	return basicUserModel2Entity(u)
@@ -233,7 +232,8 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
 }
 
-func loginLimiter(ctx context.Context, password string, hashed *string, parts ...string) error {
+// password 是用户输入密码, hashed是存储的密文
+func loginLimiter(ctx context.Context, encryptType uint8, password string, hashed *string, parts ...string) error {
 	key := "risk:login:passport:" + strings.Join(parts, ",")
 	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
 	if err != nil {
@@ -245,7 +245,7 @@ func loginLimiter(ctx context.Context, password string, hashed *string, parts ..
 	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)
 	}
-	if !crypt.Check(password, *hashed) {
+	if !(encryptType == 0 && crypt.Check(password, *hashed)) && !(encryptType == 1 && !crypt.MD5Check(password, *hashed)) {
 		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
 			logs.Errorf("record send verify err:%s", err)
 		}

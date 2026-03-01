@@ -28,12 +28,14 @@ func newBasicUser(db *gorm.DB, opts ...gen.DOOption) basicUser {
 	tableName := _basicUser.basicUserDo.TableName()
 	_basicUser.ALL = field.NewAsterisk(tableName)
 	_basicUser.ID = field.NewField(tableName, "id")
-	_basicUser.SchoolID = field.NewField(tableName, "school_id")
+	_basicUser.UnitID = field.NewField(tableName, "unit_id")
 	_basicUser.Code = field.NewString(tableName, "code")
 	_basicUser.Phone = field.NewString(tableName, "phone")
+	_basicUser.Email = field.NewString(tableName, "email")
 	_basicUser.Password = field.NewString(tableName, "password")
 	_basicUser.Name = field.NewString(tableName, "name")
 	_basicUser.Gender = field.NewUint8(tableName, "gender")
+	_basicUser.Encrypt = field.NewUint8(tableName, "encrypt")
 	_basicUser.Extra = field.NewField(tableName, "extra")
 	_basicUser.CreatedAt = field.NewInt64(tableName, "created_at")
 	_basicUser.UpdatedAt = field.NewInt64(tableName, "updated_at")
@@ -49,12 +51,14 @@ type basicUser struct {
 
 	ALL       field.Asterisk
 	ID        field.Field
-	SchoolID  field.Field
+	UnitID    field.Field
 	Code      field.String
 	Phone     field.String
+	Email     field.String
 	Password  field.String // Password (Encrypted)
 	Name      field.String // User Nickname
 	Gender    field.Uint8
+	Encrypt   field.Uint8
 	Extra     field.Field
 	CreatedAt field.Int64
 	UpdatedAt field.Int64
@@ -76,12 +80,14 @@ func (b basicUser) As(alias string) *basicUser {
 func (b *basicUser) updateTableName(table string) *basicUser {
 	b.ALL = field.NewAsterisk(table)
 	b.ID = field.NewField(table, "id")
-	b.SchoolID = field.NewField(table, "school_id")
+	b.UnitID = field.NewField(table, "unit_id")
 	b.Code = field.NewString(table, "code")
 	b.Phone = field.NewString(table, "phone")
+	b.Email = field.NewString(table, "email")
 	b.Password = field.NewString(table, "password")
 	b.Name = field.NewString(table, "name")
 	b.Gender = field.NewUint8(table, "gender")
+	b.Encrypt = field.NewUint8(table, "encrypt")
 	b.Extra = field.NewField(table, "extra")
 	b.CreatedAt = field.NewInt64(table, "created_at")
 	b.UpdatedAt = field.NewInt64(table, "updated_at")
@@ -112,14 +118,16 @@ func (b *basicUser) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (b *basicUser) fillFieldMap() {
-	b.fieldMap = make(map[string]field.Expr, 11)
+	b.fieldMap = make(map[string]field.Expr, 13)
 	b.fieldMap["id"] = b.ID
-	b.fieldMap["school_id"] = b.SchoolID
+	b.fieldMap["unit_id"] = b.UnitID
 	b.fieldMap["code"] = b.Code
 	b.fieldMap["phone"] = b.Phone
+	b.fieldMap["email"] = b.Email
 	b.fieldMap["password"] = b.Password
 	b.fieldMap["name"] = b.Name
 	b.fieldMap["gender"] = b.Gender
+	b.fieldMap["encrypt"] = b.Encrypt
 	b.fieldMap["extra"] = b.Extra
 	b.fieldMap["created_at"] = b.CreatedAt
 	b.fieldMap["updated_at"] = b.UpdatedAt

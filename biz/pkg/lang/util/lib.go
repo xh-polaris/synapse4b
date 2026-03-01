@@ -2,9 +2,6 @@ package util
 
 // Of 获取任意类型的指针
 func Of[T any](v T) *T {
-	if v == nil {
-		return nil
-	}
 	return &v
 }
 

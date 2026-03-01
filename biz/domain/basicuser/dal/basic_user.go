@@ -54,20 +54,20 @@ func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.Ba
 	}
 	return user, err
 }
-func (d *BasicUserDAO) FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error) {
-	sid, err := id.FromHex(schoolId)
+func (d *BasicUserDAO) FindManyByUnitID(ctx context.Context, unitId string) ([]*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
 	if err != nil {
 		return nil, err
 	}
-	return d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.SchoolID.Eq(sid)).Find()
+	return d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid)).Find()
 }
 
-func (d *BasicUserDAO) FindByCode(ctx context.Context, schoolId, code string) (*model.BasicUser, error) {
-	sid, err := id.FromHex(schoolId)
+func (d *BasicUserDAO) FindByCode(ctx context.Context, unitId, code string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
 	if err != nil {
 		return nil, err
 	}
-	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.SchoolID.Eq(sid), d.query.BasicUser.Code.Eq(code)).First()
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid), d.query.BasicUser.Code.Eq(code)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

@@ -12,18 +12,18 @@ func NewBasicUserRepo(db *orm.DB) BasicUserRepo {
 	return dal.NewBasicUserDAO(db)
 }
 
-func NewSchoolRepo(db *orm.DB) SchoolRepo {
-	return dal.NewSchoolDAO(db)
+func NewUnitRepo(db *orm.DB) UnitRepo {
+	return dal.NewUnitDAO(db)
 }
 
 type BasicUserRepo interface {
 	FindByID(ctx context.Context, id string) (*model.BasicUser, error)
 	FindByPhone(ctx context.Context, phone string) (*model.BasicUser, error)
 	FindByEmail(ctx context.Context, email string) (*model.BasicUser, error)
-	FindManyBySchoolID(ctx context.Context, schoolId string) ([]*model.BasicUser, error)
-	FindByCode(ctx context.Context, schoolId, code string) (*model.BasicUser, error)
-	FindCompletely(ctx context.Context, schoolId, code, phone, email string) (*model.BasicUser, error)
-	FindPartly(ctx context.Context, schoolId, code, phone, email string) (*model.BasicUser, error)
+	FindManyByUnitID(ctx context.Context, unitId string) ([]*model.BasicUser, error)
+	FindByCode(ctx context.Context, unitId, code string) (*model.BasicUser, error)
+	FindCompletely(ctx context.Context, unitId, code, phone, email string) (*model.BasicUser, error)
+	FindPartly(ctx context.Context, unitId, code, phone, email string) (*model.BasicUser, error)
 	Create(ctx context.Context, nu *model.BasicUser) (*model.BasicUser, error)
 	ResetPassword(ctx context.Context, basicUserId, password string) error
 }
@@ -31,6 +31,6 @@ type BasicUserRepo interface {
 type AuthRepo interface {
 }
 
-type SchoolRepo interface {
-	FindByID(ctx context.Context, id string) (*model.School, error)
+type UnitRepo interface {
+	FindByID(ctx context.Context, id string) (*model.Unit, error)
 }

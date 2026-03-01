@@ -28,7 +28,7 @@ type Auth struct {
 	AuthId   string
 }
 
-type School struct {
+type Unit struct {
 	ID        string
 	Name      string
 	Extra     *map[string]any

@@ -23,7 +23,7 @@ import (
 
 type Component struct {
 	BasicUserRepo repo.BasicUserRepo
-	SchoolRepo    repo.SchoolRepo
+	UnitRepo      repo.UnitRepo
 	IdGen         id.IDGenerator
 }
 
@@ -136,15 +136,15 @@ func (i *userImpl) LoginByEmail(ctx context.Context, requirePassword bool, email
 	return basicUserModel2Entity(u)
 }
 
-func (i *userImpl) LoginByCode(ctx context.Context, schoolId, code, verify string) (*entity.BasicUser, error) {
-	u, err := i.BasicUserRepo.FindByCode(ctx, schoolId, code)
+func (i *userImpl) LoginByCode(ctx context.Context, unitId, code, verify string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByCode(ctx, unitId, code)
 	if err != nil {
 		return nil, err
 	}
 	if u == nil { // 未注册过
 		return nil, errorx.New(errno.CodeNotExisted, errorx.KV("code", code))
 	}
-	if err = loginLimiter(ctx, u.Encrypt, verify, u.Password, schoolId, code); err != nil {
+	if err = loginLimiter(ctx, u.Encrypt, verify, u.Password, unitId, code); err != nil {
 		return nil, err
 	}
 	return basicUserModel2Entity(u)
@@ -161,8 +161,8 @@ func (i *userImpl) PhoneExist(ctx context.Context, phone string) (is bool, err e
 	return false, nil
 }
 
-func (i *userImpl) CodeExist(ctx context.Context, schoolId, code string) (is bool, err error) {
-	mus, err := i.BasicUserRepo.FindManyBySchoolID(ctx, schoolId)
+func (i *userImpl) CodeExist(ctx context.Context, unitId, code string) (is bool, err error) {
+	mus, err := i.BasicUserRepo.FindManyByUnitID(ctx, unitId)
 	if err != nil {
 		return false, err
 	}

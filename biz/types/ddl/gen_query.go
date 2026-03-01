@@ -11,7 +11,7 @@ import (
 )
 
 var path2Model = map[string][]any{
-	"/basicuser/dal/query": {&basicuser.BasicUser{}, &basicuser.School{}},
+	"/basicuser/dal/query": {&basicuser.BasicUser{}, &basicuser.Unit{}},
 }
 
 func getRootPath() string {

@@ -18,20 +18,20 @@ import (
 var (
 	Q         = new(Query)
 	BasicUser *basicUser
-	School    *school
+	Unit      *unit
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	BasicUser = &Q.BasicUser
-	School = &Q.School
+	Unit = &Q.Unit
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:        db,
 		BasicUser: newBasicUser(db, opts...),
-		School:    newSchool(db, opts...),
+		Unit:      newUnit(db, opts...),
 	}
 }
 
@@ -39,7 +39,7 @@ type Query struct {
 	db *gorm.DB
 
 	BasicUser basicUser
-	School    school
+	Unit      unit
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -48,7 +48,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:        db,
 		BasicUser: q.BasicUser.clone(db),
-		School:    q.School.clone(db),
+		Unit:      q.Unit.clone(db),
 	}
 }
 
@@ -64,19 +64,19 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:        db,
 		BasicUser: q.BasicUser.replaceDB(db),
-		School:    q.School.replaceDB(db),
+		Unit:      q.Unit.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
 	BasicUser IBasicUserDo
-	School    ISchoolDo
+	Unit      IUnitDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		BasicUser: q.BasicUser.WithContext(ctx),
-		School:    q.School.WithContext(ctx),
+		Unit:      q.Unit.WithContext(ctx),
 	}
 }
 

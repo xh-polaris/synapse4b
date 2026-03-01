@@ -11,27 +11,27 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewSchoolDAO(db *orm.DB) *SchoolDAO {
-	return &SchoolDAO{
+func NewUnitDAO(db *orm.DB) *UnitDAO {
+	return &UnitDAO{
 		query: query.Use(db),
 	}
 }
 
-type SchoolDAO struct {
+type UnitDAO struct {
 	query *query.Query
 }
 
-func (d *SchoolDAO) FindByID(ctx context.Context, idStr string) (*model.School, error) {
+func (d *UnitDAO) FindByID(ctx context.Context, idStr string) (*model.Unit, error) {
 	sid, err := id.FromHex(idStr)
 	if err != nil {
 		return nil, err
 	}
-	school, err := d.query.WithContext(ctx).School.Where(d.query.School.ID.Eq(sid)).First()
+	unit, err := d.query.WithContext(ctx).Unit.Where(d.query.Unit.ID.Eq(sid)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return school, err
+	return unit, err
 }

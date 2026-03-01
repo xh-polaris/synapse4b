@@ -8,8 +8,8 @@ import (
 
 type BasicUser struct {
 	ID        id.ID          `gorm:"column:id;primaryKey;autoIncrement:false;type:binary(12)" json:"id"`            // Primary Key ID
-	UnitID    *id.ID         `gorm:"column:unit_id;type:binary(12);index:idx_school_student,unique" json:"unit_id"` // UnitID 学校ID
-	Code      *string        `gorm:"column:code;type:varchar(24);index:idx_school_student,unique" json:"code"`      // Code 学号
+	UnitID    *id.ID         `gorm:"column:unit_id;type:binary(12);index:idx_unit_student,unique" json:"unit_id"`   // UnitID 学校ID
+	Code      *string        `gorm:"column:code;type:varchar(24);index:idx_unit_student,unique" json:"code"`        // Code 学号
 	Phone     *string        `gorm:"column:phone;uniqueIndex;type:varchar(16)" json:"phone"`                        // Phone 手机号
 	Email     *string        `gorm:"column:email;uniqueIndex;type:varchar(16)" json:"email"`                        // Email 邮箱
 	Password  *string        `gorm:"column:password;type:varchar(60);comment:Password (Encrypted)" json:"password"` // Password (Encrypted)

@@ -17,3 +17,13 @@ func BasicUserPO2VO(u *entity.BasicUser) *basicuser.BasicUser {
 		Gender:      util.Of(int32(u.Gender)),
 	}
 }
+
+// UnitPO2VO .
+func UnitPO2VO(u *entity.Unit) *basicuser.Unit {
+	return &basicuser.Unit{
+		Id:         u.ID,
+		Name:       util.Of(u.Name),
+		CreateTime: u.CreatedAt.Unix(),
+		UpdateTime: u.CreatedAt.Unix(),
+	}
+}

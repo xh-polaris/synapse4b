@@ -276,3 +276,56 @@ func basicUserModel2Entity(u *model.BasicUser) (*entity.BasicUser, error) {
 	}
 	return eu, nil
 }
+
+func (i *userImpl) CreateUnit(ctx context.Context, name string) (*entity.Unit, error) {
+	unitId := i.IdGen.GenID(ctx)
+	nu := &model.Unit{
+		ID:   unitId,
+		Name: name,
+	}
+	nu, err := i.UnitRepo.Create(ctx, nu)
+	if err != nil {
+		return nil, err
+	}
+	return unitModel2Entity(nu)
+}
+
+func (i *userImpl) QueryUnit(ctx context.Context, name string) (*entity.Unit, error) {
+	unit, err := i.UnitRepo.FindByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if unit == nil {
+		return nil, errorx.New(errno.UnitNotExisted)
+	}
+	return unitModel2Entity(unit)
+}
+
+func (i *userImpl) GetUnit(ctx context.Context, id string) (*entity.Unit, error) {
+	unit, err := i.UnitRepo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if unit == nil {
+		return nil, errorx.New(errno.UnitNotExisted)
+	}
+	return unitModel2Entity(unit)
+}
+
+func unitModel2Entity(u *model.Unit) (*entity.Unit, error) {
+	eu := &entity.Unit{
+		ID:        u.ID.Hex(),
+		Name:      u.Name,
+		CreatedAt: time.UnixMilli(u.CreatedAt),
+		UpdatedAt: time.UnixMilli(u.UpdatedAt),
+	}
+	if len(u.Extra) != 0 {
+		extra := map[string]any{}
+		err := sonic.Unmarshal(u.Extra, &extra)
+		if err != nil {
+			return nil, err
+		}
+		eu.Extra = &extra
+	}
+	return eu, nil
+}

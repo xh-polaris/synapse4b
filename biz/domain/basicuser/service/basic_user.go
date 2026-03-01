@@ -17,4 +17,7 @@ type BasicUser interface {
 	LoginByCode(ctx context.Context, unitId, code, verify string) (*entity.BasicUser, error)
 	ResetPassword(ctx context.Context, basicUserId string, password string) error
 	CreateBasicUser(ctx context.Context, unitId, code, phone, email, password string, encryptType int64) (*entity.BasicUser, error)
+	CreateUnit(ctx context.Context, name string) (*entity.Unit, error)
+	QueryUnit(ctx context.Context, name string) (*entity.Unit, error)
+	GetUnit(ctx context.Context, id string) (*entity.Unit, error)
 }

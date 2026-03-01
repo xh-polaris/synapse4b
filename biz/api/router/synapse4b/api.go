@@ -31,4 +31,10 @@ func Register(r *server.Hertz) {
 		_system.POST("/send_verify_code", append(_sendverifycodeMw(), synapse4b.SendVerifyCode)...)
 		_system.POST("/sign_ticket", append(_signticketMw(), synapse4b.SignTicket)...)
 	}
+	{
+		_unit := root.Group("/unit", _unitMw()...)
+		_unit.POST("/create", append(_createunitMw(), synapse4b.CreateUnit)...)
+		_unit.POST("/get", append(_getunitMw(), synapse4b.GetUnit)...)
+		_unit.POST("/query", append(_queryunitMw(), synapse4b.QueryUnit)...)
+	}
 }

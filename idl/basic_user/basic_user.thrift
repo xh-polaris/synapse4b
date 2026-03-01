@@ -12,6 +12,13 @@ struct BasicUser {
     7: optional i32    gender,      // 性别
 }
 
+struct Unit {
+    1: string Id,
+    2: optional string name,
+    3: i64 createTime,
+    4: i64 updateTime,
+}
+
 /*
  基础用户相关API
  */
@@ -76,4 +83,36 @@ struct BasicUserCreateReq {
 struct BasicUserCreateResp {
     1: base.Response resp,
     255: BasicUser basicUser,
+}
+
+// 获取Unit
+struct GetUnitReq {
+    1: string unitId,
+    255: base.App        app,
+}
+
+struct GetUnitResp {
+    1: base.Response resp,
+    255: Unit unit,
+}
+
+// 查询Unit
+struct QueryUnitReq {
+    1: optional string name,
+    255: base.App        app,
+}
+struct QueryUnitResp {
+    1: base.Response resp,
+    255: Unit unit,
+}
+
+// 创建Unit
+struct CreateUnitReq {
+    1: string     name,
+    254: optional string createKey, // 创建密钥
+    255: base.App app,
+}
+struct CreateUnitResp {
+    1: base.Response resp,
+    255: Unit unit,
 }

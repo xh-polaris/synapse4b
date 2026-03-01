@@ -35,3 +35,22 @@ func (d *UnitDAO) FindByID(ctx context.Context, idStr string) (*model.Unit, erro
 	}
 	return unit, err
 }
+
+func (d *UnitDAO) FindByName(ctx context.Context, name string) (*model.Unit, error) {
+	unit, err := d.query.WithContext(ctx).Unit.Where(d.query.Unit.Name.Eq(name)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return unit, err
+}
+
+func (d *UnitDAO) Create(ctx context.Context, nu *model.Unit) (*model.Unit, error) {
+	err := d.query.WithContext(ctx).Unit.Create(nu)
+	if err != nil {
+		return nil, err
+	}
+	return nu, err
+}

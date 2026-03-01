@@ -33,4 +33,6 @@ type AuthRepo interface {
 
 type UnitRepo interface {
 	FindByID(ctx context.Context, id string) (*model.Unit, error)
+	FindByName(ctx context.Context, name string) (*model.Unit, error)
+	Create(ctx context.Context, nu *model.Unit) (*model.Unit, error)
 }

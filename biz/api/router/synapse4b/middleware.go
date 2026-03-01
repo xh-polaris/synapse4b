@@ -60,3 +60,28 @@ func _createbasicuserMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _unitMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createunitMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _getorcreateunitMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _queryunitMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _getunitMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

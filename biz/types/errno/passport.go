@@ -25,6 +25,7 @@ const (
 	EmailNotExisted     = 200_000_018
 	ErrCreateKey        = 200_000_019
 	ErrPartlyCreate     = 200_000_020
+	UnitNotExisted      = 200_000_021
 )
 
 func init() {
@@ -119,6 +120,10 @@ func init() {
 	)
 	code.Register(ErrPartlyCreate,
 		"only partly match user auth",
+		code.WithAffectStability(false),
+	)
+	code.Register(UnitNotExisted,
+		"unit not exists",
 		code.WithAffectStability(false),
 	)
 }

@@ -274,3 +274,55 @@ func (s *BasicUserService) CreateBasicUser(ctx context.Context, req *model.Basic
 		BasicUser: internal.BasicUserPO2VO(u),
 	}, nil
 }
+
+// CreateUnit 创建unit
+func (s *BasicUserService) CreateUnit(ctx context.Context, req *model.CreateUnitReq) (resp *model.CreateUnitResp, err error) {
+	// 校验应用信息
+	if err = conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+	// 校验创建密钥
+	var ok bool
+	var u *entity.Unit
+	if err, ok = conf.VerifyCreateKey(req.GetApp(), *req.CreateKey); err != nil || !ok {
+		return nil, errorx.New(errno.ErrCreateKey)
+	}
+	if u, err = s.DomainSVC.CreateUnit(ctx, req.Name); err != nil {
+		return nil, err
+	}
+	return &model.CreateUnitResp{
+		Resp: application.Success(),
+		Unit: internal.UnitPO2VO(u),
+	}, nil
+}
+
+// QueryUnit 查询unit
+func (s *BasicUserService) QueryUnit(ctx context.Context, req *model.QueryUnitReq) (resp *model.QueryUnitResp, err error) {
+	// 校验应用信息
+	if err = conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+	var u *entity.Unit
+	if u, err = s.DomainSVC.QueryUnit(ctx, *req.Name); err != nil {
+		return nil, err
+	}
+	return &model.QueryUnitResp{
+		Resp: application.Success(),
+		Unit: internal.UnitPO2VO(u),
+	}, nil
+}
+
+// GetUnit 获取unit
+func (s *BasicUserService) GetUnit(ctx context.Context, req *model.GetUnitReq) (resp *model.GetUnitResp, err error) {
+	if err = conf.ValidApp(req.GetApp()); err != nil {
+		return nil, err
+	}
+	var u *entity.Unit
+	if u, err = s.DomainSVC.GetUnit(ctx, req.GetUnitId()); err != nil {
+		return nil, err
+	}
+	return &model.GetUnitResp{
+		Resp: application.Success(),
+		Unit: internal.UnitPO2VO(u),
+	}, nil
+}

@@ -11,7 +11,7 @@ type BasicUser struct {
 	UnitID    *id.ID         `gorm:"column:unit_id;type:binary(12);index:idx_unit_student,unique" json:"unit_id"`   // UnitID 学校ID
 	Code      *string        `gorm:"column:code;type:varchar(24);index:idx_unit_student,unique" json:"code"`        // Code 学号
 	Phone     *string        `gorm:"column:phone;uniqueIndex;type:varchar(16)" json:"phone"`                        // Phone 手机号
-	Email     *string        `gorm:"column:email;uniqueIndex;type:varchar(16)" json:"email"`                        // Email 邮箱
+	Email     *string        `gorm:"column:email;uniqueIndex;type:varchar(191)" json:"email"`                       // Email 邮箱
 	Password  *string        `gorm:"column:password;type:varchar(60);comment:Password (Encrypted)" json:"password"` // Password (Encrypted)
 	Name      string         `gorm:"column:name;type:varchar(60);comment:User Nickname" json:"name"`                // User Nickname
 	Gender    uint8          `gorm:"column:gender" json:"gender"`                                                   // Gender 性别 0:未知 1:男 2:女

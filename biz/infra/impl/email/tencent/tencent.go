@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
-
 	"github.com/cloudwego/hertz/pkg/common/json"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	tencenterrors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
@@ -15,6 +13,7 @@ import (
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/cache"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/email"
 	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
+	"strconv"
 )
 
 const (
@@ -63,7 +62,7 @@ func (t *tencentEmail) send(_ context.Context, app, cause, email string, param *
 	// 参数设置
 	req := tencentemail.NewSendEmailRequest()
 
-	req.FromEmailAddress = common.StringPtr(conf.GetConfig().Email.Account)
+	req.FromEmailAddress = common.StringPtr(fmt.Sprintf("%s <%s>", conf.GetConfig().Email.Extra["Sign"], conf.GetConfig().Email.FromAddress))
 	req.Destination = common.StringPtrs([]string{email})
 	req.Subject = common.StringPtr(conf.GetConfig().Email.SubjectConf[app][cause])
 	req.Template = &tencentemail.Template{

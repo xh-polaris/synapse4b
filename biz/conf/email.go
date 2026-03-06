@@ -6,9 +6,10 @@ type Email struct {
 	Provider     string            // 供应商
 	Account      string            // 账号
 	Token        string            // 鉴权token
-	Extra        map[string]string // 不同渠道的额外信息
-	TemplateConf EmailTemplateConf `json:",default={}"` // 以AppName为名获取到到对应App的配置, 可从其中通过原因获取对应的模板
-	SubjectConf  EmailSubjectConf  `json:",default={}"`
+	FromAddress  string            // 发件人地址
+	Extra        map[string]string // 不同渠道的额外信息，包括发件人名称和地址
+	TemplateConf EmailTemplateConf `json:",default={}"` // 以AppName为名获取到到对应App的配置, 可从其中通过原因获取对应的邮件模板
+	SubjectConf  EmailSubjectConf  `json:",default={}"` // 同上，获取对应邮件主题
 }
 
 type EmailTemplateConf = map[string]EmailCauseToTemplate

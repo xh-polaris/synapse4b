@@ -33,7 +33,6 @@ type BasicUserService struct {
 }
 
 // RegisterNewBasicUser 注册一个新用户
-// 暂时只允许手机号注册新用户
 func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.BasicUserRegisterReq) (resp *model.BasicUserRegisterResp, err error) {
 	if err = conf.ValidApp(req.GetApp()); err != nil {
 		return nil, err
@@ -52,18 +51,18 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
 		authType = cst.TokenAuthType
-	//case cst.AuthTypeCodePassword:
-	//	if req.ExtraAuthId == nil {
-	//		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
-	//	}
-	//	ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if ok {
-	//		return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
-	//	}
-	//	authType = cst.TokenAuthType
+	case cst.AuthTypeCodePassword:
+		if req.ExtraAuthId == nil {
+			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
+		}
+		ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
+		}
+		authType = cst.TokenAuthType
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}

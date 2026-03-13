@@ -60,6 +60,12 @@ func ParseJWT(tokenConf *conf.Token, str string) (*Info, error) {
 		return nil, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// 避免extra为nil
+		extra, _ := claims[cst.TokenExtra].(map[string]any)
+		if extra == nil {
+			extra = make(map[string]any)
+		}
+
 		info := &Info{
 			BasicUserId: claims[cst.TokenBasicUserID].(string),
 			UnitId:      claims[cst.TokenUnitID].(string),
@@ -68,7 +74,7 @@ func ParseJWT(tokenConf *conf.Token, str string) (*Info, error) {
 			Email:       claims[cst.TokenEmail].(string),
 			LoginTime:   int64(claims[cst.TokenLoginTime].(float64)),
 			AuthType:    claims[cst.TokenAuthType].(string),
-			Extra:       claims[cst.TokenExtra].(map[string]any),
+			Extra:       extra,
 			RawToken:    str,
 		}
 		return info, nil

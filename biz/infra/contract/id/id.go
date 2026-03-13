@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // ID 是mongodb中的ObjectID, 为了和其他服务使用MongoDB数据库相适应
-type ID primitive.ObjectID
+type ID bson.ObjectID
 
 type IDGenerator interface {
 	GenID(ctx context.Context) ID
@@ -18,11 +17,11 @@ type IDGenerator interface {
 
 // Hex 方法返回 ObjectID 的十六进制字符串表示
 func (i ID) Hex() string {
-	return primitive.ObjectID(i).Hex()
+	return bson.ObjectID(i).Hex()
 }
 
 func FromHex(str string) (ID, error) {
-	oid, err := primitive.ObjectIDFromHex(str)
+	oid, err := bson.ObjectIDFromHex(str)
 	return ID(oid), err
 }
 
@@ -49,6 +48,6 @@ func (i *ID) Scan(value interface{}) error {
 	}
 
 	// 直接转换为 ID 类型
-	*i = ID(primitive.ObjectID(b))
+	*i = ID(bson.ObjectID(b))
 	return nil
 }

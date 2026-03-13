@@ -2,9 +2,9 @@ package mongoid
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/id"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func New(ctx context.Context) id.IDGenerator {
@@ -14,12 +14,12 @@ func New(ctx context.Context) id.IDGenerator {
 type objectIDGenerator struct{}
 
 func (i *objectIDGenerator) GenID(_ context.Context) id.ID {
-	return id.ID(primitive.NewObjectID())
+	return id.ID(bson.NewObjectID())
 }
 
 func (i *objectIDGenerator) GenMultiIDs(_ context.Context, counts int) (ids []id.ID) {
 	for _ = range counts {
-		ids = append(ids, id.ID(primitive.NewObjectID()))
+		ids = append(ids, id.ID(bson.NewObjectID()))
 	}
 	return
 }

@@ -51,19 +51,19 @@ func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.
 		if ok {
 			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
 		}
+		authType = cst.AuthTypePhoneVerify
+	case cst.AuthTypeCodePassword:
+		if req.ExtraAuthId == nil {
+			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
+		}
+		ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
+		}
 		authType = cst.TokenAuthType
-	//case cst.AuthTypeCodePassword:
-	//	if req.ExtraAuthId == nil {
-	//		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
-	//	}
-	//	ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if ok {
-	//		return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
-	//	}
-	//	authType = cst.TokenAuthType
 	default:
 		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
 	}

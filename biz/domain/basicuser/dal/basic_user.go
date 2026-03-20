@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"errors"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse4b/biz/types/errno"
 
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/query"
@@ -44,6 +46,21 @@ func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.Ba
 	return user, err
 }
 
+func (d *BasicUserDAO) FindByPhoneAndUnit(ctx context.Context, phone, unitId string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
+	if err != nil {
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Phone.Eq(phone), d.query.BasicUser.UnitID.Eq(uid)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
 func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.BasicUser, error) {
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Email.Eq(email)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -54,10 +71,27 @@ func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.Ba
 	}
 	return user, err
 }
+
+func (d *BasicUserDAO) FindByEmailAndUnit(ctx context.Context, email, unitId string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
+	if err != nil {
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
+	}
+
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Email.Eq(email), d.query.BasicUser.UnitID.Eq(uid)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
 func (d *BasicUserDAO) FindManyByUnitID(ctx context.Context, unitId string) ([]*model.BasicUser, error) {
 	uid, err := id.FromHex(unitId)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	return d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid)).Find()
 }
@@ -65,7 +99,7 @@ func (d *BasicUserDAO) FindManyByUnitID(ctx context.Context, unitId string) ([]*
 func (d *BasicUserDAO) FindByCode(ctx context.Context, unitId, code string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitId)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid), d.query.BasicUser.Code.Eq(code)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,7 +130,7 @@ func (d *BasicUserDAO) ResetPassword(ctx context.Context, basicUserId, password 
 func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitID)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid),
 		d.query.BasicUser.Code.Eq(code), d.query.BasicUser.Phone.Eq(phone), d.query.BasicUser.Email.Eq(email)).First()
@@ -114,7 +148,7 @@ func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, 
 func (d *BasicUserDAO) FindPartly(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitID)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	user, err := d.query.WithContext(ctx).BasicUser.
 		Where(

@@ -32,78 +32,6 @@ type BasicUserService struct {
 	DomainSVC basicuser.BasicUser
 }
 
-// RegisterNewBasicUser 注册一个新用户
-// 暂时只允许手机号注册新用户
-func (s *BasicUserService) RegisterNewBasicUser(ctx context.Context, req *model.BasicUserRegisterReq) (resp *model.BasicUserRegisterResp, err error) {
-	if err = conf.ValidApp(req.GetApp()); err != nil {
-		return nil, err
-	}
-	var authType string
-	switch req.AuthType {
-	case cst.AuthTypePhoneVerify:
-		if err = s.validPhoneVerify(ctx, req.App.Name, req.AuthId, req.Verify); err != nil {
-			return nil, err
-		}
-		ok, err := s.DomainSVC.PhoneExist(ctx, req.AuthId)
-		if err != nil {
-			return nil, err
-		}
-		if ok {
-			return nil, errorx.New(errno.PhoneHasExisted, errorx.KV("phone", req.AuthId))
-		}
-		authType = cst.AuthTypePhoneVerify
-	case cst.AuthTypeCodePassword:
-		if req.ExtraAuthId == nil {
-			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
-		}
-		ok, err := s.DomainSVC.CodeExist(ctx, req.AuthId, *req.ExtraAuthId)
-		if err != nil {
-			return nil, err
-		}
-		if ok {
-			return nil, errorx.New(errno.CodeHasExisted, errorx.KV("code", *req.ExtraAuthId))
-		}
-		authType = cst.TokenAuthType
-	default:
-		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", req.AuthType))
-	}
-
-	if req.GetPassword() == "" {
-		return nil, errorx.New(errno.MustPassword)
-	}
-
-	var extraAuthId string
-	if req.ExtraAuthId != nil {
-		extraAuthId = *req.ExtraAuthId
-	}
-	var u *entity.BasicUser
-	if u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, extraAuthId, *req.Password); err != nil {
-		return nil, err
-	}
-
-	info := &token.Info{
-		BasicUserId: u.ID,
-		UnitId:      util.UnPtr(u.UnitID),
-		Code:        util.UnPtr(u.Code),
-		Phone:       util.UnPtr(u.Phone),
-		Email:       util.UnPtr(u.Email),
-		LoginTime:   time.Now().Unix(),
-		AuthType:    authType,
-		Extra:       nil,
-	}
-	jwt, err := token.SignJWT(conf.GetConfig().Token, info)
-	if err != nil {
-		return nil, err
-	}
-
-	resp = &model.BasicUserRegisterResp{
-		Resp:      application.Success(),
-		Token:     jwt,
-		BasicUser: internal.BasicUserPO2VO(u),
-	}
-	return
-}
-
 // 判断是否达到风控限制
 func (s *BasicUserService) validRisk(ctx context.Context, key string) (err error) {
 	// 判断是否到上限
@@ -161,6 +89,12 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 	var ok = true
 	var u *entity.BasicUser
 	var authType string
+
+	var unitId string
+	if unitId = util.UnPtr(req.ExtraAuthId); unitId == "" {
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "单位id"))
+	}
+
 	switch req.AuthType {
 	case cst.AuthTypePhoneVerify: // 手机号验证码登录
 		err = s.validPhoneVerify(ctx, req.App.Name, req.AuthId, req.Verify)
@@ -172,22 +106,30 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 			return nil, err
 		}
 		if ok {
-			u, err = s.DomainSVC.LoginByPhone(ctx, false, req.AuthId, req.Verify)
+			u, err = s.DomainSVC.LoginByPhone(ctx, false, req.AuthId, req.Verify, unitId)
 		} else {
-			u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, "", "")
+			return nil, errorx.New(errno.UserNotExisted)
 		}
 		authType = cst.AuthTypePhone
 	case cst.AuthTypePhonePassword: // 手机号密码登录
-		u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify)
+		ok, err = s.DomainSVC.PhoneExist(ctx, req.AuthId)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			u, err = s.DomainSVC.LoginByPhone(ctx, true, req.AuthId, req.Verify, unitId)
+		} else {
+			return nil, errorx.New(errno.UserNotExisted)
+		}
 		authType = cst.AuthTypePhone
 	case cst.AuthTypeCodePassword: // 学号密码登录
 		if req.ExtraAuthId == nil {
 			return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "学号"))
 		}
-		u, err = s.DomainSVC.LoginByCode(ctx, req.AuthId, *req.ExtraAuthId, req.Verify)
+		u, err = s.DomainSVC.LoginByCode(ctx, *req.ExtraAuthId, req.AuthId, req.Verify)
 		authType = cst.AuthTypeCode
 	case cst.AuthTypeEmailPassword: // 邮箱密码登录
-		u, err = s.DomainSVC.LoginByEmail(ctx, true, req.AuthId, req.Verify)
+		u, err = s.DomainSVC.LoginByEmail(ctx, true, req.AuthId, req.Verify, unitId)
 		authType = cst.AuthTypeEmail
 	case cst.AuthTypeEmailVerify: // 邮箱验证码登录
 		err = s.validEmailVerify(ctx, req.App.Name, req.AuthId, req.Verify)
@@ -199,9 +141,9 @@ func (s *BasicUserService) Login(ctx context.Context, req *model.BasicUserLoginR
 			return nil, err
 		}
 		if ok {
-			u, err = s.DomainSVC.LoginByEmail(ctx, false, req.AuthId, req.Verify)
+			u, err = s.DomainSVC.LoginByEmail(ctx, false, req.AuthId, req.Verify, unitId)
 		} else {
-			u, err = s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, "", "")
+			return nil, errorx.New(errno.UserNotExisted)
 		}
 		authType = cst.AuthTypeEmail
 	default:

@@ -26,6 +26,7 @@ const (
 	ErrCreateKey        = 200_000_019
 	ErrPartlyCreate     = 200_000_020
 	UnitNotExisted      = 200_000_021
+	InvalidParameter    = 200_000_022
 )
 
 func init() {
@@ -124,6 +125,10 @@ func init() {
 	)
 	code.Register(UnitNotExisted,
 		"unit not exists",
+		code.WithAffectStability(false),
+	)
+	code.Register(InvalidParameter,
+		"invalid parameter {parameter}",
 		code.WithAffectStability(false),
 	)
 }

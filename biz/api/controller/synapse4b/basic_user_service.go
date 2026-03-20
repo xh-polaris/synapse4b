@@ -11,25 +11,6 @@ import (
 	buapp "github.com/xh-polaris/synapse4b/biz/application/basicuser"
 )
 
-// BasicUserRegister .
-// @router /basic_user/register [POST]
-func BasicUserRegister(ctx context.Context, c *app.RequestContext) {
-	var err error
-	var req basicuser.BasicUserRegisterReq
-	err = c.BindAndValidate(&req)
-	if err != nil {
-		invalidParamRequestResponse(c, err.Error())
-		return
-	}
-
-	resp, err := buapp.BasicUserSVC.RegisterNewBasicUser(ctx, &req)
-	if err != nil {
-		internalServerErrorResponse(ctx, c, err)
-		return
-	}
-	c.JSON(consts.StatusOK, resp)
-}
-
 // BasicUserLogin .
 // @router /basic_user/login [POST]
 func BasicUserLogin(ctx context.Context, c *app.RequestContext) {

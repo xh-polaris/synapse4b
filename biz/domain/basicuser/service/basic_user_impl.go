@@ -44,6 +44,11 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 		return nil, errorx.New(errno.UnitNotExisted)
 	}
 
+	// code、phone、email至少需要一个
+	if code == "" && phone == "" && email == "" {
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "code、phone、email至少需要一个"))
+	}
+
 	// 查询是否存在完全匹配的账号, 若是则绑定到该账号上, 忽视初始密码
 	u, err := i.BasicUserRepo.FindCompletely(ctx, unitId, code, phone, email)
 	if err != nil {

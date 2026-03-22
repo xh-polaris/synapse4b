@@ -3,6 +3,8 @@ package dal
 import (
 	"context"
 	"errors"
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse4b/biz/types/errno"
 
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/query"
@@ -24,7 +26,7 @@ type UnitDAO struct {
 func (d *UnitDAO) FindByID(ctx context.Context, idStr string) (*model.Unit, error) {
 	sid, err := id.FromHex(idStr)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	unit, err := d.query.WithContext(ctx).Unit.Where(d.query.Unit.ID.Eq(sid)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {

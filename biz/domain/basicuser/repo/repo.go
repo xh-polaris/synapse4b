@@ -19,7 +19,9 @@ func NewUnitRepo(db *orm.DB) UnitRepo {
 type BasicUserRepo interface {
 	FindByID(ctx context.Context, id string) (*model.BasicUser, error)
 	FindByPhone(ctx context.Context, phone string) (*model.BasicUser, error)
+	FindByPhoneAndUnit(ctx context.Context, phone, unitId string) (*model.BasicUser, error)
 	FindByEmail(ctx context.Context, email string) (*model.BasicUser, error)
+	FindByEmailAndUnit(ctx context.Context, email, unitId string) (*model.BasicUser, error)
 	FindManyByUnitID(ctx context.Context, unitId string) ([]*model.BasicUser, error)
 	FindByCode(ctx context.Context, unitId, code string) (*model.BasicUser, error)
 	FindCompletely(ctx context.Context, unitId, code, phone, email string) (*model.BasicUser, error)

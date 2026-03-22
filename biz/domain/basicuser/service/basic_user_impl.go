@@ -17,7 +17,6 @@ import (
 	"github.com/xh-polaris/synapse4b/biz/pkg/lang/crypt"
 	"github.com/xh-polaris/synapse4b/biz/pkg/lang/util"
 	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
-	"github.com/xh-polaris/synapse4b/biz/types/cst"
 	"github.com/xh-polaris/synapse4b/biz/types/errno"
 )
 
@@ -36,6 +35,20 @@ type userImpl struct {
 }
 
 func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, email, password string, encryptType int64) (user *entity.BasicUser, err error) {
+	// 校验unit存在
+	unit, err := i.UnitRepo.FindByID(ctx, unitId)
+	if err != nil {
+		return nil, err
+	}
+	if unit == nil {
+		return nil, errorx.New(errno.UnitNotExisted)
+	}
+
+	// code、phone、email至少需要一个
+	if code == "" && phone == "" && email == "" {
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "code、phone、email至少需要一个"))
+	}
+
 	// 查询是否存在完全匹配的账号, 若是则绑定到该账号上, 忽视初始密码
 	u, err := i.BasicUserRepo.FindCompletely(ctx, unitId, code, phone, email)
 	if err != nil {
@@ -104,8 +117,8 @@ func (i *userImpl) UserIDExist(ctx context.Context, userId string) (user *entity
 	return user, true, err
 }
 
-func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone, verify string) (*entity.BasicUser, error) {
-	u, err := i.BasicUserRepo.FindByPhone(ctx, phone)
+func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone, verify string, unitId string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByPhoneAndUnit(ctx, phone, unitId)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +133,8 @@ func (i *userImpl) LoginByPhone(ctx context.Context, requirePassword bool, phone
 	return basicUserModel2Entity(u)
 }
 
-func (i *userImpl) LoginByEmail(ctx context.Context, requirePassword bool, email, verify string) (*entity.BasicUser, error) {
-	u, err := i.BasicUserRepo.FindByEmail(ctx, email)
+func (i *userImpl) LoginByEmail(ctx context.Context, requirePassword bool, email, verify string, unitId string) (*entity.BasicUser, error) {
+	u, err := i.BasicUserRepo.FindByEmailAndUnit(ctx, email, unitId)
 	if err != nil {
 		return nil, err
 	}
@@ -183,42 +196,6 @@ func (i *userImpl) EmailExist(ctx context.Context, email string) (is bool, err e
 		return true, nil
 	}
 	return false, nil
-}
-
-func (i *userImpl) Register(ctx context.Context, authType, authId, extraAuthId, password string) (u *entity.BasicUser, err error) {
-	var hashed string
-	if password != "" {
-		hashed, err = crypt.Hash(password)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	nu := &model.BasicUser{
-		ID:       i.IdGen.GenID(ctx),
-		Password: &hashed,
-	}
-
-	switch authType {
-	case cst.AuthTypePhoneVerify:
-		nu.Phone = &authId
-	//case cst.AuthTypeCodePassword:
-	//	aid, err := id.FromHex(authId)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	nu.UnitID = &aid
-	//	nu.Code = &extraAuthId
-	case cst.AuthTypeEmailVerify:
-		nu.Email = &authId
-	default:
-		return nil, errorx.New(errno.UnSupportAuthType, errorx.KV("type", authType))
-	}
-	nu, err = i.BasicUserRepo.Create(ctx, nu)
-	if err != nil {
-		return nil, errorx.New(errno.ErrRegister)
-	}
-	return basicUserModel2Entity(nu)
 }
 
 func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, password string) error {

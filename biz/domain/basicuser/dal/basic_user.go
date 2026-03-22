@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/xh-polaris/synapse4b/biz/pkg/errorx"
+	"github.com/xh-polaris/synapse4b/biz/types/errno"
+
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/model"
 	"github.com/xh-polaris/synapse4b/biz/domain/basicuser/dal/query"
 	"github.com/xh-polaris/synapse4b/biz/infra/contract/id"
@@ -44,6 +47,21 @@ func (d *BasicUserDAO) FindByPhone(ctx context.Context, phone string) (*model.Ba
 	return user, err
 }
 
+func (d *BasicUserDAO) FindByPhoneAndUnit(ctx context.Context, phone, unitId string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
+	if err != nil {
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
+	}
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Phone.Eq(phone), d.query.BasicUser.UnitID.Eq(uid)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
 func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.BasicUser, error) {
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Email.Eq(email)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -54,10 +72,27 @@ func (d *BasicUserDAO) FindByEmail(ctx context.Context, email string) (*model.Ba
 	}
 	return user, err
 }
+
+func (d *BasicUserDAO) FindByEmailAndUnit(ctx context.Context, email, unitId string) (*model.BasicUser, error) {
+	uid, err := id.FromHex(unitId)
+	if err != nil {
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
+	}
+
+	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.Email.Eq(email), d.query.BasicUser.UnitID.Eq(uid)).First()
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
+
 func (d *BasicUserDAO) FindManyByUnitID(ctx context.Context, unitId string) ([]*model.BasicUser, error) {
 	uid, err := id.FromHex(unitId)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	return d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid)).Find()
 }
@@ -65,7 +100,7 @@ func (d *BasicUserDAO) FindManyByUnitID(ctx context.Context, unitId string) ([]*
 func (d *BasicUserDAO) FindByCode(ctx context.Context, unitId, code string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitId)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
 	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid), d.query.BasicUser.Code.Eq(code)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -93,20 +128,56 @@ func (d *BasicUserDAO) ResetPassword(ctx context.Context, basicUserId, password 
 }
 
 // FindCompletely 完全匹配
+// 原User和新User的所有非空字段一致视为完全匹配
 func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitID)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
-	user, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid),
-		d.query.BasicUser.Code.Eq(code), d.query.BasicUser.Phone.Eq(phone), d.query.BasicUser.Email.Eq(email)).First()
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+
+	// code, phone, email至少有一个非空，否则无法匹配
+	if code == "" && phone == "" && email == "" {
+		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "code、phone、email至少需要一个"))
 	}
+
+	// 查询unit下所有user
+	users, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid)).Find()
 	if err != nil {
 		return nil, err
 	}
-	return user, err
+
+	for _, user := range users {
+		// 遍历user，逐个比较字段：只要双方都非空就必须相等，否则判定不匹配
+		ok := compareNonEmptyField(user.Code, code)
+		if !ok {
+			continue
+		}
+
+		ok = compareNonEmptyField(user.Phone, phone)
+		if !ok {
+			continue
+		}
+
+		ok = compareNonEmptyField(user.Email, email)
+		if !ok {
+			continue
+		}
+
+		return user, nil
+	}
+
+	return nil, nil
+}
+
+// compareNonEmptyField 比较两个字段是否匹配：只要双方都非空就必须相等，否则视为完全匹配失败
+func compareNonEmptyField(oldVal *string, newVal string) bool {
+	if oldVal == nil || *oldVal == "" || newVal == "" {
+		return true
+	}
+	if *oldVal != newVal {
+		return false
+	}
+	return true
 }
 
 // FindPartly 部分匹配
@@ -114,21 +185,47 @@ func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, 
 func (d *BasicUserDAO) FindPartly(ctx context.Context, unitID, code, phone, email string) (*model.BasicUser, error) {
 	uid, err := id.FromHex(unitID)
 	if err != nil {
-		return nil, err
+		return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "单位id"))
 	}
-	user, err := d.query.WithContext(ctx).BasicUser.
-		Where(
+
+	if code != "" {
+		user, err := d.query.WithContext(ctx).BasicUser.Where(
 			d.query.BasicUser.UnitID.Eq(uid),
 			d.query.BasicUser.Code.Eq(code),
-		).
-		Or(d.query.BasicUser.Phone.Eq(phone)).
-		Or(d.query.BasicUser.Email.Eq(email)).
-		First()
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		).First()
+		if err == nil {
+			return user, nil
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
 	}
-	if err != nil {
-		return nil, err
+
+	if phone != "" {
+		user, err := d.query.WithContext(ctx).BasicUser.Where(
+			d.query.BasicUser.UnitID.Eq(uid),
+			d.query.BasicUser.Phone.Eq(phone),
+		).First()
+		if err == nil {
+			return user, nil
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
 	}
-	return user, err
+
+	if email != "" {
+		user, err := d.query.WithContext(ctx).BasicUser.Where(
+			d.query.BasicUser.UnitID.Eq(uid),
+			d.query.BasicUser.Email.Eq(email),
+		).First()
+		if err == nil {
+			return user, nil
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+	}
+
+	return nil, nil
 }

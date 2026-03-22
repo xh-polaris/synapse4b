@@ -222,7 +222,7 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)
 	}
-	if !(encryptType == 0 && crypt.Check(password, *hashed)) && !(encryptType == 1 && !crypt.MD5Check(password, *hashed)) {
+	if !(encryptType == 0 && crypt.Check(password, *hashed)) && !(encryptType == 1 && (password != *hashed)) {
 		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
 			logs.Errorf("record send verify err:%s", err)
 		}
@@ -234,6 +234,7 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 func basicUserModel2Entity(u *model.BasicUser) (*entity.BasicUser, error) {
 	eu := &entity.BasicUser{
 		ID:        u.ID.Hex(),
+		UnitID:    util.Of(u.UnitID.Hex()),
 		Code:      u.Code,
 		Phone:     u.Phone,
 		Email:     u.Email,

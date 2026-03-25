@@ -17,6 +17,7 @@ func Hash(str string) (string, error) {
 	return string(hash), nil
 }
 
+// Check 可以实现MD5校验
 func Check(str, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(str))
 	return err == nil

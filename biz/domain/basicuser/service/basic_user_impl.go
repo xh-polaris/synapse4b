@@ -73,7 +73,7 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 		return nil, errorx.New(errno.MustPassword)
 	}
 	if encryptType == 0 { // 使用bcrypt加密
-		pass, err = crypt.Hash(password)
+		pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
 	} else { // 传入的是md5密文
 		pass = password
 	}
@@ -202,7 +202,7 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 	if password == "" {
 		return errorx.New(errno.MustPassword)
 	}
-	hashed, err := crypt.Hash(password)
+	hashed, err := crypt.PBKDF2WithHmacSHA1(password, "")
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)
 	}
-	if !(encryptType == 0 && crypt.Check(password, *hashed)) && !(encryptType == 1 && (password != *hashed)) {
+	if !(encryptType == 0 && crypt.PBKDF2WithHmacSHA1Check(password, *hashed)) && !(encryptType == 1 && (password != *hashed)) {
 		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
 			logs.Errorf("record send verify err:%s", err)
 		}

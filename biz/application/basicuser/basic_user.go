@@ -226,7 +226,7 @@ func (s *BasicUserService) CreateUnit(ctx context.Context, req *model.CreateUnit
 	// 校验创建密钥
 	var ok bool
 	var u *entity.Unit
-	if err, ok = conf.VerifyCreateKey(req.GetApp(), *req.CreateKey); err != nil || !ok {
+	if err, ok = conf.VerifyCreateKey(req.GetApp(), util.UnPtr(req.CreateKey)); err != nil || !ok {
 		return nil, errorx.New(errno.ErrCreateKey)
 	}
 	if u, err = s.DomainSVC.CreateUnit(ctx, req.Name); err != nil {
@@ -245,7 +245,7 @@ func (s *BasicUserService) QueryUnit(ctx context.Context, req *model.QueryUnitRe
 		return nil, err
 	}
 	var u *entity.Unit
-	if u, err = s.DomainSVC.QueryUnit(ctx, *req.Name); err != nil {
+	if u, err = s.DomainSVC.QueryUnit(ctx, util.UnPtr(req.Name)); err != nil {
 		return nil, err
 	}
 	return &model.QueryUnitResp{

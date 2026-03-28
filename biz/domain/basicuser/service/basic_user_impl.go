@@ -72,10 +72,16 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 	if password == "" {
 		return nil, errorx.New(errno.MustPassword)
 	}
-	if encryptType == 0 { // 使用bcrypt加密
-		pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
-	} else { // 传入的是md5密文
-		pass = password
+	switch encryptType {
+	case 0: // 使用bcrypt加密
+		pass, err = crypt.BcryptHash(password)
+	case 1: // 传入的是PBKDF2
+		parts := strings.Split(password, ":")
+		if len(parts) < 2 {
+			pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
+		} else {
+			pass, err = crypt.PBKDF2WithHmacSHA1(parts[0], parts[1])
+		}
 	}
 	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), Password: util.Of(pass), Encrypt: uint8(encryptType)}
 

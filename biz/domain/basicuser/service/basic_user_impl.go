@@ -83,18 +83,17 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 			pass = password
 		}
 	}
-	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), Password: util.Of(pass), Encrypt: uint8(encryptType)}
+
+	uid, err := id.FromHex(unitId)
+	if err != nil {
+		return nil, err
+	}
+
+	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), UnitID: util.Of(uid), Password: util.Of(pass), Encrypt: uint8(encryptType)}
 
 	// 学号
-	if unitId != "" && code != "" {
-		uid, err := id.FromHex(unitId)
-		if err != nil {
-			return nil, err
-		}
-		nu.UnitID = util.Of(uid)
+	if code != "" {
 		nu.Code = util.Of(code)
-	} else if unitId != "" || code != "" { // 不完整
-		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "unitId or code"))
 	}
 	// 手机号
 	if phone != "" {

@@ -80,7 +80,7 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 		if len(parts) < 2 {
 			pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
 		} else {
-			pass, err = crypt.PBKDF2WithHmacSHA1(parts[0], parts[1])
+			pass = password
 		}
 	}
 	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), Password: util.Of(pass), Encrypt: uint8(encryptType)}

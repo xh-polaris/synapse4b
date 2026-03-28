@@ -50,8 +50,13 @@ func PBKDF2WithHmacSHA1Check(str, storedPwd string) bool {
 		return false
 	}
 	parts := strings.Split(storedPwd, ":")
+	if len(parts) != 2 {
+		return false
+	}
 
-	checkPwd, _ := PBKDF2WithHmacSHA1(str, parts[0])
-
-	return checkPwd == storedPwd
+	computed, err := PBKDF2WithHmacSHA1(str, parts[0])
+	if err != nil {
+		return false
+	}
+	return computed == storedPwd
 }

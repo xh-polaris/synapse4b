@@ -204,7 +204,7 @@ func (s *BasicUserService) CreateBasicUser(ctx context.Context, req *model.Basic
 	// 校验创建密钥
 	var ok bool
 	var u *entity.BasicUser
-	if err, ok = conf.VerifyCreateKey(req.GetApp(), *req.CreateKey); err != nil || !ok {
+	if err, ok = conf.VerifyCreateKey(req.GetApp(), util.UnPtr(req.CreateKey)); err != nil || !ok {
 		return nil, errorx.New(errno.ErrCreateKey)
 	}
 	if u, err = s.DomainSVC.CreateBasicUser(ctx, util.UnPtr(req.UnitId), util.UnPtr(req.Code), util.UnPtr(req.Phone),

@@ -101,7 +101,7 @@ func (s *SystemService) SignTicket(ctx context.Context, req *system.SignTicketRe
 	rawTicket := req.GetApp().GetName() + ":" + info.BasicUserId + ":" + info.RawToken + ":" + strconv.FormatInt(time.Now().Unix(), 10)
 	ticket := fmt.Sprintf("%x", md5.Sum([]byte(rawTicket)))
 
-	if err = s.cache.Set(ctx, req.GetApp().GetName()+":"+ticket, info.RawToken, time.Second*5).Err(); err != nil {
+	if err = s.cache.Set(ctx, req.GetApp().GetName()+":"+ticket, info.RawToken, time.Second*10).Err(); err != nil {
 		logs.Errorf("set ticket failed, app: %s, ticket: %s, err: %v", req.GetApp().GetName(), ticket, err)
 		return nil, errorx.WrapByCode(err, errno.ErrSignTicket)
 	}

@@ -227,7 +227,7 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)
 	}
-	if !(encryptType == 0 && crypt.PBKDF2WithHmacSHA1Check(password, *hashed)) && !(encryptType == 1 && (password != *hashed)) {
+	if !(encryptType == 0 && crypt.BcryptCheck(password, *hashed)) && !(encryptType == 1 && crypt.PBKDF2WithHmacSHA1Check(password, *hashed)) {
 		if err = risk.AddOnce(ctx, key, conf.GetConfig().Token.Period); err != nil {
 			logs.Errorf("record send verify err:%s", err)
 		}

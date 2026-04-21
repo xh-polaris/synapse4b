@@ -140,44 +140,22 @@ func (d *BasicUserDAO) FindCompletely(ctx context.Context, unitID, code, phone, 
 		return nil, errorx.New(errno.MissingParameter, errorx.KV("parameter", "code、phone、email至少需要一个"))
 	}
 
-	// 查询unit下所有user
-	users, err := d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.UnitID.Eq(uid)).Find()
+	var user model.BasicUser
+	err = d.query.WithContext(ctx).BasicUser.UnderlyingDB().
+		Model(&model.BasicUser{}).
+		Where("unit_id = ?", uid).
+		Where("(code IS NULL OR code = '' OR ? = '' OR code = ?)", code, code).
+		Where("(phone IS NULL OR phone = '' OR ? = '' OR phone = ?)", phone, phone).
+		Where("(email IS NULL OR email = '' OR ? = '' OR email = ?)", email, email).
+		Where("((? <> '' AND code IS NOT NULL AND code <> '' AND code = ?) OR (? <> '' AND phone IS NOT NULL AND phone <> '' AND phone = ?) OR (? <> '' AND email IS NOT NULL AND email <> '' AND email = ?))", code, code, phone, phone, email, email).
+		First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	for _, user := range users {
-		// 遍历user，逐个比较字段：只要双方都非空就必须相等，否则判定不匹配
-		ok := compareNonEmptyField(user.Code, code)
-		if !ok {
-			continue
-		}
-
-		ok = compareNonEmptyField(user.Phone, phone)
-		if !ok {
-			continue
-		}
-
-		ok = compareNonEmptyField(user.Email, email)
-		if !ok {
-			continue
-		}
-
-		return user, nil
-	}
-
-	return nil, nil
-}
-
-// compareNonEmptyField 比较两个字段是否匹配：只要双方都非空就必须相等，否则视为完全匹配失败
-func compareNonEmptyField(oldVal *string, newVal string) bool {
-	if oldVal == nil || *oldVal == "" || newVal == "" {
-		return true
-	}
-	if *oldVal != newVal {
-		return false
-	}
-	return true
+	return &user, nil
 }
 
 // FindPartly 部分匹配

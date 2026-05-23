@@ -12,6 +12,13 @@ const (
 	AuthTypeEmailVerify   = "email-verify"
 )
 
+// EncryptType 加密类型
+const (
+	EncryptBcrypt     uint8 = 0
+	EncryptPBKDF2     uint8 = 1
+	EncryptNoPassword uint8 = 255 // 无密码
+)
+
 // Token 中存储的信息
 const (
 	TokenInfo        = "token_info"

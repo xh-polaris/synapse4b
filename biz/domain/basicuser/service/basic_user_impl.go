@@ -17,6 +17,7 @@ import (
 	"github.com/xh-polaris/synapse4b/biz/pkg/lang/crypt"
 	"github.com/xh-polaris/synapse4b/biz/pkg/lang/util"
 	"github.com/xh-polaris/synapse4b/biz/pkg/logs"
+	"github.com/xh-polaris/synapse4b/biz/types/cst"
 	"github.com/xh-polaris/synapse4b/biz/types/errno"
 )
 
@@ -69,19 +70,29 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 
 	// 否则, 创建新用户, 使用初始密码
 	var pass string
+	var encType uint8
 	if password == "" {
-		return nil, errorx.New(errno.MustPassword)
-	}
-	switch encryptType {
-	case 0: // 使用bcrypt加密
-		pass, err = crypt.BcryptHash(password)
-	case 1: // 传入的是PBKDF2
-		parts := strings.Split(password, ":")
-		if len(parts) < 2 {
-			pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
-		} else {
-			pass = password
+		if phone == "" {
+			return nil, errorx.New(errno.MustPassword)
 		}
+		// 允许无密码创建
+		pass = ""
+		encType = cst.EncryptNoPassword // 特殊值表示无密码
+	} else {
+		switch encryptType {
+		case 0: // 使用bcrypt加密
+			pass, err = crypt.BcryptHash(password)
+		case 1: // 传入的是PBKDF2
+			parts := strings.Split(password, ":")
+			if len(parts) < 2 {
+				pass, err = crypt.PBKDF2WithHmacSHA1(password, "")
+			} else {
+				pass = password
+			}
+		default:
+			return nil, errorx.New(errno.InvalidParameter, errorx.KV("parameter", "encryptType,got "+strconv.Itoa(int(encryptType))))
+		}
+		encType = uint8(encryptType)
 	}
 
 	uid, err := id.FromHex(unitId)
@@ -89,7 +100,7 @@ func (i *userImpl) CreateBasicUser(ctx context.Context, unitId, code, phone, ema
 		return nil, err
 	}
 
-	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), UnitID: util.Of(uid), Password: util.Of(pass), Encrypt: uint8(encryptType)}
+	nu := &model.BasicUser{ID: i.IdGen.GenID(ctx), UnitID: util.Of(uid), Password: util.Of(pass), Encrypt: encType}
 
 	// 学号
 	if code != "" {
@@ -214,7 +225,7 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
 }
 
-// password 是用户输入密码, hashed是存储的密文
+// password 是用户输入密码, hashed是存储的密文，encryptType用特殊值255表示未设置密码
 func loginLimiter(ctx context.Context, encryptType uint8, password string, hashed *string, parts ...string) error {
 	key := "risk:login:passport:" + strings.Join(parts, ",")
 	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
@@ -223,6 +234,9 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 	}
 	if limit { // 达到上限, 不允许校验
 		return errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
+	}
+	if encryptType == cst.EncryptNoPassword {
+		return errorx.New(errno.PasswordNotSet)
 	}
 	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)

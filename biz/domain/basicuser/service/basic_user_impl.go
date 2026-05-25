@@ -225,7 +225,7 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 	return i.BasicUserRepo.ResetPassword(ctx, basicUserId, hashed)
 }
 
-// password 是用户输入密码, hashed是存储的密文
+// password 是用户输入密码, hashed是存储的密文，encryptType用特殊值255表示未设置密码
 func loginLimiter(ctx context.Context, encryptType uint8, password string, hashed *string, parts ...string) error {
 	key := "risk:login:passport:" + strings.Join(parts, ",")
 	limit, _, err := risk.CheckUpperLimit(ctx, key, conf.GetConfig().Token.MaxInPeriod)
@@ -235,7 +235,10 @@ func loginLimiter(ctx context.Context, encryptType uint8, password string, hashe
 	if limit { // 达到上限, 不允许校验
 		return errorx.New(errno.TooOftenLoginError, errorx.KV("period", strconv.Itoa(conf.GetConfig().SMS.Period/60)))
 	}
-	if encryptType == cst.EncryptNoPassword || hashed == nil || *hashed == "" {
+	if encryptType == cst.EncryptNoPassword {
+		return errorx.New(errno.PasswordNotSet)
+	}
+	if hashed == nil || *hashed == "" {
 		return errorx.New(errno.NoPassword)
 	}
 	if !(encryptType == 0 && crypt.BcryptCheck(password, *hashed)) && !(encryptType == 1 && crypt.PBKDF2WithHmacSHA1Check(password, *hashed)) {

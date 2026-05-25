@@ -27,6 +27,7 @@ const (
 	ErrPartlyCreate     = 200_000_020
 	UnitNotExisted      = 200_000_021
 	InvalidParameter    = 200_000_022
+	PasswordNotSet      = 200_000_023
 )
 
 func init() {
@@ -129,6 +130,10 @@ func init() {
 	)
 	code.Register(InvalidParameter,
 		"invalid parameter {parameter}",
+		code.WithAffectStability(false),
+	)
+	code.Register(PasswordNotSet,
+		"password not set",
 		code.WithAffectStability(false),
 	)
 }

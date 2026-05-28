@@ -218,7 +218,7 @@ func (i *userImpl) ResetPassword(ctx context.Context, basicUserId string, passwo
 	if password == "" {
 		return errorx.New(errno.MustPassword)
 	}
-	hashed, err := crypt.PBKDF2WithHmacSHA1(password, "")
+	hashed, err := crypt.BcryptHash(password)
 	if err != nil {
 		return err
 	}

@@ -187,6 +187,7 @@ func (s *BasicUserService) ResetPassword(ctx context.Context, req *model.BasicUs
 		return nil, errorx.New(errno.InvalidToken)
 	}
 	if err = s.DomainSVC.ResetPassword(ctx, info.BasicUserId, req.NewPassword); err != nil {
+		logs.Errorf("reset password err:%s", err)
 		return nil, errorx.New(errno.ErrResetPassword)
 	}
 

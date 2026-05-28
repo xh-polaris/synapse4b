@@ -123,7 +123,10 @@ func (d *BasicUserDAO) ResetPassword(ctx context.Context, basicUserId, password 
 		return err
 	}
 	_, err = d.query.WithContext(ctx).BasicUser.Where(d.query.BasicUser.ID.Eq(buid)).
-		Update(d.query.BasicUser.Password, password)
+		Updates(map[string]interface{}{
+			d.query.BasicUser.Password.ColumnName().String(): password,
+			d.query.BasicUser.Encrypt.ColumnName().String():  0,
+		})
 	return err
 }
 
